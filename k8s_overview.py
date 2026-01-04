@@ -16,6 +16,10 @@ import requests
 from kubernetes import client, config
 from kubernetes.client.rest import ApiException
 from kubernetes.stream import stream
+from colorama import init as colorama_init, Fore, Style
+
+# Initialize colorama for Windows terminals
+colorama_init(autoreset=True)
 
 
 def load_clients():
@@ -53,6 +57,47 @@ def cluster_overview(v1: client.CoreV1Api, apps: client.AppsV1Api, net: client.N
         ns_name = ns.metadata.name
         pods = v1.list_namespaced_pod(ns_name).items
         print(f"- {ns_name}: pods={len(pods)}")
+
+        # list each pod with a colored status
+        for p in pods:
+            pod_name = p.metadata.name
+            phase = (p.status.phase or '').capitalize()
+
+            # determine detailed status (check container states)
+            pod_color = Fore.YELLOW
+            detailed = phase
+            try:
+                cs = p.status.container_statuses or []
+                # check for CrashLoopBackOff or terminated non-zero exit codes
+                problem = False
+                for c in cs:
+                    st = getattr(c, 'state', None)
+                    if st is None:
+                        continue
+                    waiting = getattr(st, 'waiting', None)
+                    terminated = getattr(st, 'terminated', None)
+                    if waiting is not None:
+                        reason = getattr(waiting, 'reason', '') or ''
+                        detailed = f"{phase} ({reason})" if reason else detailed
+                        if 'CrashLoopBackOff' in reason or 'CrashLoop' in reason or 'Error' in reason:
+                            problem = True
+                    if terminated is not None:
+                        exit_code = getattr(terminated, 'exit_code', 0)
+                        reason = getattr(terminated, 'reason', '') or ''
+                        detailed = f"{phase} (Exit {exit_code} {reason})" if exit_code else detailed
+                        if exit_code != 0:
+                            problem = True
+
+                if phase.lower() == 'running' and not problem:
+                    pod_color = Fore.GREEN
+                elif problem or phase.lower() in ('failed', 'error'):
+                    pod_color = Fore.RED
+                else:
+                    pod_color = Fore.YELLOW
+            except Exception:
+                pod_color = Fore.YELLOW
+
+            print(f"    - {pod_name}: {pod_color}{detailed}{Style.RESET_ALL}")
 
     print("\n== Deployments (per namespace) ==")
     for ns in v1.list_namespace().items:
