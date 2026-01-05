@@ -1,5 +1,9 @@
 # Kubernetes cluster debug & overview tool
 
+<p align="center">
+  <img src="res/logo.png" alt="Clustros Logo" width="350"/>
+</p>
+
 This small Python tool helps inspect and debug a Kubernetes cluster. It can:
 
 - Show a quick cluster overview (nodes, namespaces, pods, services, ingresses, deployments).
