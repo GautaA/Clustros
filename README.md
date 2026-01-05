@@ -3,39 +3,34 @@
 This small Python tool helps inspect and debug a Kubernetes cluster. It can:
 
 - Show a quick cluster overview (nodes, namespaces, pods, services, ingresses, deployments).
+- **Display all nodes with current CPU and memory usage (color-coded, requires metrics-server):**
+  - Shows CPU and memory usage as USED/MAX and percent, with green/yellow/red coloring for low/medium/high usage.
+  - If metrics-server is not installed, a warning is shown and usage is omitted.
 - Test DNS resolution using the cluster DNS.
 - Test TCP connectivity to hosts/ports.
 - Probe connectivity from inside the cluster by creating a short-lived debug pod and running `curl`/`ping`.
 - Inspect TLS/SSL certificate presented by ingress hosts.
 
-Requirements
+## Requirements
+- Python 3
+- Kubernetes Python client (`pip install kubernetes`)
+- metrics-server installed in your cluster for resource usage metrics
 
-Install dependencies (PowerShell):
+## Usage
 
-```powershell
-python -m pip install -r k8s_tool/requirements.txt
+```sh
+python3 k8s_overview.py --overview
 ```
 
-Usage examples
+This will show:
+- Node names, roles, and ready conditions
+- CPU and memory usage for each node (if metrics-server is available)
+- Namespaces and pod counts
+- Deployments, services, ingresses
 
-```powershell
-# Full overview
-python k8s_tool/k8s_overview.py --overview
-
-# DNS test for a service name (e.g. kubernetes.default.svc.cluster.local)
-python k8s_tool/k8s_overview.py --dns-test kubernetes.default.svc.cluster.local
-
-# TCP connect test
-python k8s_tool/k8s_overview.py --tcp-test example.com:443
-
-# TLS cert inspect for host
-python k8s_tool/k8s_overview.py --tls-check example.com:443
-
-# Run in-cluster probe (create ephemeral pod) to curl an URL
-python k8s_tool/k8s_overview.py --pod-probe http://kubernetes.default.svc.cluster.local
-```
-
-Notes
-
-- The script tries to load `~/.kube/config` (local dev). If run from a pod inside the cluster it will use in-cluster config.
-- Creating the debug pod requires permission to create and delete pods in the target namespace.
+Other flags:
+- `--extra-checks` for additional cluster checks (API server version, kubelet versions, endpoints, events, PVCs, RBAC)
+- `--dns-test HOST` to test DNS resolution
+- `--tcp-test HOST:PORT` to test TCP connectivity
+- `--tls-check HOST:PORT` to inspect TLS certificates
+- `--pod-probe URL` to run a curl from inside the cluster
