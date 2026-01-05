@@ -1,10 +1,5 @@
 # Kubernetes cluster debug & overview tool
-
-<p align="center">
-  <img src="res/logo.png" alt="Clustros Logo" width="350"/>
-</p>
-
-This small Python tool helps inspect and debug a Kubernetes cluster. It can:
+Python tool that helps inspecting and debugging a Kubernetes cluster. It can:
 
 - Show a quick cluster overview (nodes, namespaces, pods, services, ingresses, deployments).
 - **Display all nodes with current CPU and memory usage (color-coded, requires metrics-server):**
@@ -22,10 +17,9 @@ This small Python tool helps inspect and debug a Kubernetes cluster. It can:
 
 ## Usage
 
-
 ## Multi-Cluster Support & Secure Access
 
-This tool supports multiple clusters and SSH tunneling for secure API access. All cluster and SSH info is stored in `clustros.yaml` (see below for security advice).
+This tool supports multiple clusters and SSH tunneling if the Kuberenetes API port on the remote machine running the cluster is not opened. All cluster and SSH info is stored in `clustros.yaml` (see below for security advice).
 
 ### Example usage
 
